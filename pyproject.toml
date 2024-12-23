@@ -1,0 +1,40 @@
+[project]
+name = "gtasks"
+version = "0.1.0"  
+description = "My Invoke tasks package"
+dependencies = [
+    "build>=1.2.2.post1",
+    "commitizen>=4.1.0",
+    "inquirer>=3.4.0",
+    "invoke",
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"  
+tag_format = "v$version"          
+version_scheme = "pep440"         
+version_provider = "pep621"       
+update_changelog_on_bump = true   
+
+[project.scripts]
+gtasks = "gtasks.main:program.run"
+
+[tool.ruff]
+fix = true
+indent-width = 4
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["D100", "D103"]
+
+[tool.setuptools]
+packages = ["gtasks"]
+
+
