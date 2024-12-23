@@ -6,20 +6,12 @@ from typing import Dict, List, Union
 
 from invoke.tasks import task
 
-from .base_git_commands import get_owner_repo
+from .base import get_owner_repo
 
 
 @task
 def hello(c, name="World 1"):
     print(f"Hello, {name}!")
-
-
-@task
-def goodbye(c, name="World"):
-    print(f"Goodbye, {name}!")
-
-
-# Create a namespace for the tasks
 
 
 labels_list = [
@@ -83,4 +75,4 @@ def labels(ctx: None) -> None:
         )
 
 
-namespace = Collection(hello, goodbye, labels)
+namespace = Collection("setup", hello, labels)
