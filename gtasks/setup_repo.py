@@ -38,6 +38,7 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
 
 @task
 def labels(ctx: None) -> None:
+    "Create labels for the repo"
     owner, repo = get_owner_repo()
     existing_labels = get_existing_labels(owner, repo)
     for label in existing_labels:
