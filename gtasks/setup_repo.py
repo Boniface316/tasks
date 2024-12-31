@@ -9,10 +9,6 @@ from invoke.tasks import task
 from .base import get_owner_repo
 
 
-@task
-def hello(c, name="World 1"):
-    print(f"Hello, {name}!")
-
 
 labels_list = [
     {"color": "d73a4a", "description": "Something isn't working", "name": "bug"},
