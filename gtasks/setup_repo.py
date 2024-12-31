@@ -71,4 +71,4 @@ def labels(ctx: None) -> None:
         )
 
 
-namespace = Collection("setup", hello, labels)
+namespace = Collection("setup", labels)
