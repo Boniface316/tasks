@@ -9,8 +9,21 @@ from invoke import Collection
 from .base import get_owner_repo, get_assignee, COMMIT_TYPES
 from .branch import git_current_branch
 
+# This file contains scripts related to git activities.
+
 
 def git_add() -> None:
+    """
+    Interactively add changed files to the git staging area.
+    This function checks the current git status for any changed files.
+    If there are no changed files, it prints a message and exits.
+    If there are changed files, it prompts the user to select which files
+    to add to the staging area using an interactive checkbox menu.
+    If no files are selected, it prints a message and exits.
+    Otherwise, it adds the selected files to the git staging area and
+    prints a confirmation message.
+    """
+
     result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
     if not changed_files:
@@ -37,6 +50,12 @@ def git_add() -> None:
 
 
 def get_commit_type() -> Union[str, Any]:
+    """
+    Prompts the user to select the type of change they are committing from a list of commit types.
+    Returns:
+        str: The type of change selected by the user.
+    """
+
     return inquirer.prompt(
         [
             inquirer.List(
@@ -49,6 +68,14 @@ def get_commit_type() -> Union[str, Any]:
 
 
 def git_commit(commit_type) -> None:
+    """
+    Create a git commit with a formatted commit message based on the provided commit type.
+    Args:
+        commit_type (str): The type of commit, e.g., "exp" for experiment notes or "WIP" for work in progress.
+        The function prompts the user for additional information such as a short description, a longer description,
+        and any breaking changes. It then formats these inputs into a commit message and executes the git commit command.
+    """
+
     if commit_type == "exp":
         add_experiment_notes()
     elif commit_type == "WIP":
@@ -70,6 +97,17 @@ def git_commit(commit_type) -> None:
 
 
 def create_PR_body() -> str:
+    """
+    Prompts the user to input details for a pull request (PR) body and returns the formatted PR body as a string.
+    The function interacts with the user to gather the following information:
+    - Context: Why the PR is needed.
+    - Solution: A concise description of the implemented solution.
+    - Dependencies: Any added dependencies and their justification (optional).
+    - Confirmation of self-review, inclusion of test cases, and documentation updates.
+    Returns:
+        str: The formatted PR body including the description and verification steps.
+    """
+
     print("Enter the PR body")
     print(
         "Include description of feature this PR introduces or a bug that it fixes. Include the following information:"
@@ -109,6 +147,15 @@ def create_PR_body() -> str:
 
 
 def create_pr(owner: str, repo: str) -> None:
+    """
+    Create a pull request on GitHub for the specified repository.
+    Args:
+        owner (str): The owner of the repository.
+        repo (str): The name of the repository.
+    Returns:
+        None
+    """
+
     title = inquirer.text("Enter the PR title")
     body = create_PR_body()
     assignee = get_assignee(owner, repo)
@@ -127,6 +174,21 @@ def create_pr(owner: str, repo: str) -> None:
 
 
 def add_experiment_notes():
+    """
+    Prompts the user for details about an experiment and saves the notes to a YAML file.
+    The function collects the following information from the user:
+    - Hypothesis
+    - Results
+    - Conclusion
+    - Risks related to data (optional)
+    - Risks related to the model (optional)
+    - Risks related to the code (optional)
+    The notes are saved in a YAML file named with the current date and time.
+    The function also commits and pushes the changes to the git submodules.
+    Returns:
+        None
+    """
+
     date_time = datetime.datetime.now()
     date_time = date_time.strftime("%Y-%m-%d %H:%M:%S")
     exp_hypothesis = inquirer.text("What was the hypothesis?")
@@ -165,6 +227,21 @@ def add_experiment_notes():
 
 @task
 def gacp(ctx: None) -> None:
+    """
+    Automates the process of adding, committing, and pushing changes to a Git repository,
+    and optionally creates a pull request.
+    Args:
+        ctx (None): Context parameter, not used in this function.
+    Steps:
+        1. Retrieves the owner and repository name.
+        2. Gets the current Git branch.
+        3. Stages all changes for commit.
+        4. Prompts the user for the type of commit.
+        5. Commits the changes with the specified commit type.
+        6. Pushes the changes to the remote repository and sets the upstream branch.
+        7. If the commit type is not "WIP", "exp", or "backup", prompts the user to create a pull request.
+    """
+
     owner, repo = get_owner_repo()
     current_branch = git_current_branch()
 

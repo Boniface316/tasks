@@ -4,6 +4,9 @@ from typing import List
 
 import inquirer
 
+# This script contains the base functions that are used in other scripts.
+
+
 # Define the types of commits
 COMMIT_TYPES = [
     ("fix", "A bug fix."),
@@ -25,6 +28,13 @@ COMMIT_TYPES = [
 
 
 def get_owner_repo() -> List[str]:
+    """
+    Get the owner and repository name.
+    This function uses the `gh` command to retrieve the owner and repository name.
+    Returns:
+        List[str]: A list containing the owner and repository name.
+    """
+
     command = [
         "gh",
         "repo",
@@ -39,6 +49,17 @@ def get_owner_repo() -> List[str]:
 
 
 def parse_collaborators(owner: str, repo: str) -> List[str]:
+    """
+    Parse the collaborators of a repository.
+
+    Args:
+        owner (str): The owner of the repository.
+        repo (str): The repository name.
+
+    Returns:
+        List[str]: A list containing the collaborators of the repository.
+    """
+
     command = ["gh", "api", f"repos/{owner}/{repo}/collaborators", "--jq", ".[].login"]
     result = subprocess.run(command, capture_output=True, text=True)
 
@@ -48,6 +69,16 @@ def parse_collaborators(owner: str, repo: str) -> List[str]:
 
 
 def get_assignee(owner: str, repo: str) -> str:
+    """
+    Get the assignee for an issue.
+    This function uses the `gh` command to retrieve the assignee for an issue.
+    Args:
+        owner (str): The owner of the repository.
+        repo (str): The repository name.
+    Returns:
+        str: The assignee for the issue.
+    """
+
     collaborators = parse_collaborators(owner, repo)
     return inquirer.prompt(
         [
@@ -61,6 +92,12 @@ def get_assignee(owner: str, repo: str) -> str:
 
 
 def get_label_selected():
+    """
+    Get the selected label.
+    This function uses the `gh` command to retrieve the labels of a repository.
+    Returns:
+        str: The selected
+    """
     owner, repo = get_owner_repo()
     result = subprocess.run(
         ["gh", "label", "list", "--repo", f"{owner}/{repo}", "--json", "name"],
