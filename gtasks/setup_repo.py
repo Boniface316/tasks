@@ -8,11 +8,7 @@ from invoke.tasks import task
 
 from .base import get_owner_repo
 
-
-@task
-def hello(c, name="World 1"):
-    print(f"Hello, {name}!")
-
+# This file contains scripts related to setting up a repository.
 
 labels_list = [
     {"color": "d73a4a", "description": "Something isn't working", "name": "bug"},
@@ -34,6 +30,15 @@ labels_list = [
 
 
 def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]]]:
+    """
+    Get the existing labels in the repository.
+    This function uses the GitHub CLI to get the existing labels in the repository.
+    Args:
+        owner (str): The owner of the repository.
+        repo (str): The name of the repository.
+    Returns:
+        List[Dict[str, Union[str, int]]]: The list of existing labels in the repository.
+    """
     existing_labels = subprocess.check_output(["gh", "api", f"repos/{owner}/{repo}/labels"]).decode(
         "utf-8"
     )
@@ -42,6 +47,12 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
 
 @task
 def labels(ctx: None) -> None:
+    """
+    Set up the labels in the repository.
+    This function uses the GitHub CLI to delete the existing labels in the repository and create new labels based on the `labels_list` defined in the script.
+    Returns:
+        None
+    """
     owner, repo = get_owner_repo()
     existing_labels = get_existing_labels(owner, repo)
     for label in existing_labels:
@@ -75,4 +86,4 @@ def labels(ctx: None) -> None:
         )
 
 
-namespace = Collection("setup", hello, labels)
+namespace = Collection("setup", labels)
