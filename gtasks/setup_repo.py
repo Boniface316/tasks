@@ -8,7 +8,9 @@ from invoke.tasks import task
 
 from .base import get_owner_repo
 
+
 # This file contains scripts related to setting up a repository.
+
 
 labels_list = [
     {"color": "d73a4a", "description": "Something isn't working", "name": "bug"},
@@ -47,12 +49,14 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
 
 @task
 def labels(ctx: None) -> None:
+
     """
     Set up the labels in the repository.
     This function uses the GitHub CLI to delete the existing labels in the repository and create new labels based on the `labels_list` defined in the script.
     Returns:
         None
     """
+
     owner, repo = get_owner_repo()
     existing_labels = get_existing_labels(owner, repo)
     for label in existing_labels:
