@@ -49,7 +49,6 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
 
 @task
 def labels(ctx: None) -> None:
-
     """
     Set up the labels in the repository.
     This function uses the GitHub CLI to delete the existing labels in the repository and create new labels based on the `labels_list` defined in the script.
@@ -89,8 +88,12 @@ def labels(ctx: None) -> None:
             ]
         )
 
+
 @task
 def submodule(ctx: None) -> None:
+    """
+    Set up the repository to use submodules.
+    """
     subprocess.run(["git", "config", "push.recurseSubmodules", "on-demand"])
 
 
