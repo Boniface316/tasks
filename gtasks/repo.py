@@ -225,6 +225,7 @@ def add_experiment_notes():
     subprocess.run(["git", "add", "."])
     subprocess.run(["git", "commit", "-m", "Add experiment notes"])
     os.chdir("..")
+    subprocess.run(["git", "add", "notes"])
 
 @task
 def gacp(ctx: None) -> None:
