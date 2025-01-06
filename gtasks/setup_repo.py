@@ -89,5 +89,9 @@ def labels(ctx: None) -> None:
             ]
         )
 
+@task
+def submodule(ctx: None) -> None:
+    subprocess.run(["git", "config", "push.recurseSubmodules", "on-demand"])
+
 
 namespace = Collection("setup", labels)
