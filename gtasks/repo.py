@@ -5,6 +5,7 @@ import datetime
 from typing import Any, Union
 from invoke.tasks import task
 from invoke import Collection
+import os
 
 from .base import get_owner_repo, get_assignee, COMMIT_TYPES
 from .branch import git_current_branch
@@ -220,10 +221,10 @@ def add_experiment_notes():
     with open(f"notes/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
-    subprocess.run(["git", "submodule", "foreach", "git", "add", "."])
-    subprocess.run(["git", "submodule", "foreach", "git", "commit", "-m", "Update submodule"])
-    subprocess.run(["git", "submodule", "foreach", "git", "push"])
-
+    os.chdir("notes")
+    subprocess.run(["git", "add", "."])
+    subprocess.run(["git", "commit", "-m", "Add experiment notes"])
+    os.chdir("..")
 
 @task
 def gacp(ctx: None) -> None:
