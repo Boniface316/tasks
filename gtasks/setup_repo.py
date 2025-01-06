@@ -94,4 +94,4 @@ def submodule(ctx: None) -> None:
     subprocess.run(["git", "config", "push.recurseSubmodules", "on-demand"])
 
 
-namespace = Collection("setup", labels)
+namespace = Collection("setup", labels, submodule)
