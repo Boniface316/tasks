@@ -45,6 +45,7 @@ def get_owner_repo() -> List[str]:
         ".owner.login, .name",
     ]
     result = subprocess.run(command, capture_output=True, text=True)
+    print(result.stdout.strip().split("\n"))
     return result.stdout.strip().split("\n")
 
 

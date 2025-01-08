@@ -7,7 +7,7 @@ from invoke.tasks import task
 from invoke import Collection
 import os
 
-from .base import get_owner_repo, get_assignee, COMMIT_TYPES
+from .base import get_assignee, COMMIT_TYPES, get_owner_repo
 from .branch import git_current_branch
 
 # This file contains scripts related to git activities.
@@ -174,6 +174,21 @@ def create_pr(owner: str, repo: str) -> None:
     )
 
 
+def add_commit_submodule(path):
+    if os.path.exists(f"{path}"):
+        os.chdir(f"{path}")
+        if os.path.exists(".git"):
+            subprocess.run(["git", "add", "."])
+            subprocess.run(["git", "commit", "-m", f"Add {path} results"])
+            os.chdir("..")
+            subprocess.run(["git", "add", f"{path}"])
+            print(f"{path} is added to the  submodule")
+        else:
+            print(f"{path} is pushed to the main repository")
+    else:
+        print(f"{path} does not exist")
+
+
 def add_experiment_notes():
     """
     Prompts the user for details about an experiment and saves the notes to a YAML file.
@@ -221,11 +236,8 @@ def add_experiment_notes():
     with open(f"notes/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
-    os.chdir("notes")
-    subprocess.run(["git", "add", "."])
-    subprocess.run(["git", "commit", "-m", "Add experiment notes"])
-    os.chdir("..")
-    subprocess.run(["git", "add", "notes"])
+    add_commit_submodule("notes")
+
 
 @task
 def gacp(ctx: None) -> None:
