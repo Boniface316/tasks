@@ -2,26 +2,23 @@ import subprocess
 import inquirer
 from invoke.tasks import task
 from invoke import Collection
-
+from invoke.context import Context
 # This file contains scripts related to branch activities.
 
 
-def git_current_branch() -> str:
+def git_current_branch(ctx: Context) -> str:
     """
     Get the current branch name.
     This function uses the `git` command to retrieve the current branch name.
     Returns:
         str: The name of the current branch.
     """
-
-    result = subprocess.run(
-        ["git", "symbolic-ref", "--short", "HEAD"], capture_output=True, text=True
-    )
+    result = ctx.run("git symbolic-ref --short HEAD", hide=True)
     branch = result.stdout.strip()
     return branch
 
 
-def delete_branch(ctx: None) -> None:
+def delete_branch(ctx: Context) -> None:
     """
     Delete the current branch.
     This function uses the `git` command to delete the current branch.
@@ -29,13 +26,13 @@ def delete_branch(ctx: None) -> None:
         None
     """
 
-    branch = git_current_branch()
-    subprocess.run(["git", "checkout", "main"])
+    branch = git_current_branch(ctx)
+    ctx.run("git checkout main")
 
-    print("Deleting branch local branch")
-    subprocess.run(["git", "branch", "-d", branch])
-    print("Deleting branch remote branch")
-    subprocess.run(["git", "push", "origin", "--delete", branch])
+    print("Deleting local branch")
+    ctx.run(f"git branch -d {branch}")
+    print("Deleting remote branch")
+    ctx.run(f"git push origin --delete {branch}")
 
 
 @task(
@@ -43,7 +40,7 @@ def delete_branch(ctx: None) -> None:
         "issue_id": "The ID of the issue to create a branch from. If not provided, use `gtasks issues.list` to get the issue ID."
     }
 )
-def new(ctx: None, issue_id: int = None) -> None:
+def new(ctx: Context, issue_id: int = None) -> None:
     """
     Create a new branch based on a GitHub issue.
     This function interacts with the GitHub CLI to create a new branch based on the provided issue ID.
@@ -65,20 +62,9 @@ def new(ctx: None, issue_id: int = None) -> None:
     branch_name = inquirer.text("Enter the branch name [Make is similar to the issue title]")
     branch_name = f"{label}/{issue_id}-{branch_name}"
 
-    command = [
-        "gh",
-        "issue",
-        "develop",
-        issue_id,
-        "--name",
-        branch_name,
-        "--base",
-        "main",
-        "--checkout",
-    ]
-    subprocess.run(command)
+    ctx.run(f"gh issue develop {issue_id} --name {branch_name} --base main --checkout")
 
-    subprocess.run("git checkout -b " + branch_name, shell=True)
+    ctx.run(f"git checkout -b {branch_name}")
 
 
 namespace = Collection("branch", new)
