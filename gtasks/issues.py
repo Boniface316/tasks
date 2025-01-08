@@ -2,14 +2,14 @@ import inquirer
 from .base import get_owner_repo, get_label_selected, get_assignee
 from .branch import delete_branch
 from typing import List
-import subprocess
 from invoke.tasks import task
 from invoke import Collection
+from invoke.context import Context
 
 # This script is used to manage issues in a GitHub repository
 
 
-def get_issues(assignee: str = "@me") -> List[str]:
+def get_issues(ctx, assignee: str = "@me") -> List[str]:
     """
     Get the list of issues assigned to the user.
 
@@ -24,11 +24,12 @@ def get_issues(assignee: str = "@me") -> List[str]:
         List[str]: The list of issues assigned to the user
     """
 
-    owner, repo = get_owner_repo()
+    owner, repo = get_owner_repo(ctx)
     assignee = "--assignee=" + assignee
-    command = ["gh", "issue", "list", assignee, f"--repo={owner}/{repo}"]
-    result = subprocess.run(command, capture_output=True, text=True)
-    return result.stdout.strip().split("\n")
+    ctx_result = ctx.run(f"gh issue list {assignee} --repo={owner}/{repo}", hide=True)
+    ctx_result_output = ctx_result.stdout.strip().split("\n")
+
+    return ctx_result_output
 
 
 def body_issue_docs() -> str:
@@ -152,7 +153,7 @@ def body_issue_bug() -> str:
         "issue_id": "The ID of the issue to close",
     }
 )
-def close(ctx: None, issue_id: str = None) -> None:
+def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
     """
     Close an issue.
 
@@ -160,13 +161,14 @@ def close(ctx: None, issue_id: str = None) -> None:
 
     Args:
         issue_id (str, optional): The ID of the issue to close.
+        assignee (str, optional): The assignee of the issues. Defaults to "@me".
 
     Returns:
         None
     """
 
     if issue_id is None:
-        issues = get_issues()
+        issues = get_issues(ctx, assignee)
         issues.append("Other")
         issue_id = inquirer.text("Enter the issue ID to close", choices=issues)
 
@@ -174,10 +176,10 @@ def close(ctx: None, issue_id: str = None) -> None:
             issue_id = inquirer.text("Enter the issue ID to close")
             issue_id = issue_id.split(" ")[0]
 
-    subprocess.run(["gh", "issue", "close", issue_id])
+    ctx.run(f"gh issue close {issue_id}")
 
     if inquirer.confirm("Do you want to delete the branch?", default=True):
-        delete_branch()
+        delete_branch(ctx)
 
 
 @task(
@@ -185,7 +187,7 @@ def close(ctx: None, issue_id: str = None) -> None:
         "assignee": "The assignee of the issues. Defaults to '@me'. Use 'all-open' to get all issues. Use 'none' to get unassigned issues. Use the username to get issues assigned to that user.",
     }
 )
-def list(context: None, assignee: str = "@me") -> None:
+def list(ctx: Context, assignee: str = "@me") -> None:
     """
     List the open issues assigned to the user.
 
@@ -204,7 +206,7 @@ def list(context: None, assignee: str = "@me") -> None:
         None
 
     """
-    lines = get_issues(assignee)
+    lines = get_issues(ctx, assignee)
 
     print(f"Open Issues Assigned to {assignee}:")
     for line in lines:
@@ -215,7 +217,7 @@ def list(context: None, assignee: str = "@me") -> None:
 
 
 @task
-def new(context: None) -> None:
+def new(ctx: Context) -> None:
     """
     Create a new issue.
 
@@ -226,26 +228,18 @@ def new(context: None) -> None:
 
     """
 
-    owner, repo = get_owner_repo()
+    owner, repo = get_owner_repo(ctx)
 
     title = inquirer.text("Enter the issue title")
-    label = get_label_selected()
+    label = get_label_selected(ctx)
 
     body = get_issue_body(label)
 
-    command = [
-        "gh",
-        "issue",
-        "create",
-        f"--title={title}",
-        f"--body={body}",
-        f"--repo={owner}/{repo}",
-        f"--label={label}",
-    ]
+    command = f"gh issue create --title='{title}' --body='{body}' --repo='{owner}/{repo}' --label='{label}'"
     if inquirer.confirm("Assign this issue to someone? [True]", default=True):
         assignee = get_assignee(owner, repo)
-        command.append(f"--assignee={assignee}")
-    subprocess.run(command)
+        command += f" --assignee={assignee}"
+    ctx.run(command)
 
 
 namespace = Collection("issues", close, list, new)

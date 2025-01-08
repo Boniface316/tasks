@@ -1,8 +1,8 @@
 import json
-import subprocess
 from typing import List
 
 import inquirer
+from invoke.context import Context
 
 # This script contains the base functions that are used in other scripts.
 
@@ -27,7 +27,7 @@ COMMIT_TYPES = [
 ]
 
 
-def get_owner_repo() -> List[str]:
+def get_owner_repo(ctx: Context) -> List[str]:
     """
     Get the owner and repository name.
     This function uses the `gh` command to retrieve the owner and repository name.
@@ -35,21 +35,12 @@ def get_owner_repo() -> List[str]:
         List[str]: A list containing the owner and repository name.
     """
 
-    command = [
-        "gh",
-        "repo",
-        "view",
-        "--json",
-        "owner,name",
-        "--jq",
-        ".owner.login, .name",
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    print(result.stdout.strip().split("\n"))
+    command = "gh repo view --json owner,name --jq '.owner.login, .name'"
+    result = ctx.run(command, hide=True)
     return result.stdout.strip().split("\n")
 
 
-def parse_collaborators(owner: str, repo: str) -> List[str]:
+def parse_collaborators(ctx: Context, owner: str, repo: str) -> List[str]:
     """
     Parse the collaborators of a repository.
 
@@ -61,15 +52,15 @@ def parse_collaborators(owner: str, repo: str) -> List[str]:
         List[str]: A list containing the collaborators of the repository.
     """
 
-    command = ["gh", "api", f"repos/{owner}/{repo}/collaborators", "--jq", ".[].login"]
-    result = subprocess.run(command, capture_output=True, text=True)
+    command = f"gh api repos/{owner}/{repo}/collaborators --jq '.[].login'"
+    result = ctx.run(command, hide=True)
 
     collaborators = result.stdout.strip().split("\n")
 
     return [collaborator for collaborator in collaborators]
 
 
-def get_assignee(owner: str, repo: str) -> str:
+def get_assignee(ctx: Context, owner: str, repo: str) -> str:
     """
     Get the assignee for an issue.
     This function uses the `gh` command to retrieve the assignee for an issue.
@@ -80,7 +71,7 @@ def get_assignee(owner: str, repo: str) -> str:
         str: The assignee for the issue.
     """
 
-    collaborators = parse_collaborators(owner, repo)
+    collaborators = parse_collaborators(ctx, owner, repo)
     return inquirer.prompt(
         [
             inquirer.List(
@@ -92,19 +83,16 @@ def get_assignee(owner: str, repo: str) -> str:
     )["assignee"]
 
 
-def get_label_selected():
+def get_label_selected(ctx: Context):
     """
     Get the selected label.
     This function uses the `gh` command to retrieve the labels of a repository.
     Returns:
         str: The selected
     """
-    owner, repo = get_owner_repo()
-    result = subprocess.run(
-        ["gh", "label", "list", "--repo", f"{owner}/{repo}", "--json", "name"],
-        stdout=subprocess.PIPE,
-        text=True,
-    )
+    owner, repo = get_owner_repo(ctx)
+    command = f"gh label list --repo {owner}/{repo} --json name"
+    result = ctx.run(command, hide=True)
 
     labels_json = json.loads(result.stdout)
 
