@@ -71,7 +71,7 @@ def get_assignee(ctx: Context, owner: str, repo: str) -> str:
         str: The assignee for the issue.
     """
 
-    collaborators = parse_collaborators(owner, repo)
+    collaborators = parse_collaborators(ctx, owner, repo)
     return inquirer.prompt(
         [
             inquirer.List(
