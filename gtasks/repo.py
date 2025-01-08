@@ -159,7 +159,7 @@ def create_pr(ctx: Context, owner: str, repo: str) -> None:
 
     title = inquirer.text("Enter the PR title")
     body = create_PR_body()
-    assignee = get_assignee(owner, repo)
+    assignee = get_assignee(ctx, owner, repo)
 
     ctx.run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
 
