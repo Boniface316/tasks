@@ -5,6 +5,7 @@ import subprocess
 from typing import Dict, List, Union
 
 from invoke.tasks import task
+from invoke import run
 
 from .base import get_owner_repo
 
@@ -41,9 +42,9 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
     Returns:
         List[Dict[str, Union[str, int]]]: The list of existing labels in the repository.
     """
-    existing_labels = subprocess.check_output(["gh", "api", f"repos/{owner}/{repo}/labels"]).decode(
-        "utf-8"
-    )
+    result = run(f"gh api repos/{owner}/{repo}/labels", hide=True)
+    existing_labels = result.stdout
+    breakpoint()
     return json.loads(existing_labels)  # type: List[Dict[str, Union[str, int]]]
 
 

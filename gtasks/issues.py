@@ -4,7 +4,7 @@ from .branch import delete_branch
 from typing import List
 from invoke.tasks import task
 from invoke import Collection
-from invoke.context import Context
+from invoke import run
 
 # This script is used to manage issues in a GitHub repository
 
@@ -24,13 +24,9 @@ def get_issues(ctx, assignee: str = "@me") -> List[str]:
         List[str]: The list of issues assigned to the user
     """
 
-    owner, repo = get_owner_repo(ctx)
-    assignee = "--assignee=" + assignee
-    ctx_result = ctx.run(f"gh issue list {assignee} --repo={owner}/{repo}", hide=True)
-    ctx_result_output = ctx_result.stdout.strip().split("\n")
+    issues_list = run(f"gh issue list --assignee={assignee}", hide=True)
 
-    return ctx_result_output
-
+    return issues_list.stdout.strip().split("\n")
 
 def body_issue_docs() -> str:
     """
@@ -176,7 +172,7 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
             issue_id = inquirer.text("Enter the issue ID to close")
             issue_id = issue_id.split(" ")[0]
 
-    ctx.run(f"gh issue close {issue_id}")
+    run(f"gh issue close {issue_id}")
 
     if inquirer.confirm("Do you want to delete the branch?", default=True):
         delete_branch(ctx)
@@ -238,8 +234,8 @@ def new(ctx: Context) -> None:
     command = f"gh issue create --title='{title}' --body='{body}' --repo='{owner}/{repo}' --label='{label}'"
     if inquirer.confirm("Assign this issue to someone? [True]", default=True):
         assignee = get_assignee(owner, repo)
-        command += f" --assignee={assignee}"
-    ctx.run(command)
+        command += f" --assignee='{assignee}'"
+    run(command)
 
 
 namespace = Collection("issues", close, list, new)

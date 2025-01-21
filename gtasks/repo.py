@@ -5,6 +5,7 @@ from typing import Any, Union
 from invoke.tasks import task
 from invoke import Collection
 import os
+from invoke import run
 
 from .base import get_assignee, COMMIT_TYPES, get_owner_repo
 from .branch import git_current_branch
@@ -25,7 +26,7 @@ def git_add(ctx: Context) -> None:
     prints a confirmation message.
     """
 
-    result = ctx.run("git status --porcelain", hide=True, warn=True)
+    result = run("git status --porcelain")
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
     if not changed_files:
         print("No files to add.")
@@ -45,7 +46,10 @@ def git_add(ctx: Context) -> None:
         print("No files selected.")
         return
 
-    ctx.run("git add " + " ".join(files_to_add))
+    files_to_add = " ".join(files_to_add)
+
+    run(f"git add {files_to_add}")
+
 
     print("Files added to the commit.")
 
@@ -94,7 +98,8 @@ def git_commit(ctx: Context, commit_type) -> None:
     if breaking_changes:
         commit_message += f"\n\nBREAKING CHANGE: {breaking_changes}"
 
-    ctx.run(f'git commit -m "{commit_message}"')
+
+    run(f'git commit -m "{commit_message}"')
 
 
 def create_PR_body() -> str:
@@ -161,7 +166,7 @@ def create_pr(ctx: Context, owner: str, repo: str) -> None:
     body = create_PR_body()
     assignee = get_assignee(ctx, owner, repo)
 
-    ctx.run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
+    run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
 
 
 def add_commit_submodule(ctx: Context, path):
@@ -207,7 +212,8 @@ def add_experiment_notes(ctx: Context):
     )
     exp_code_risk = inquirer.text("What are the risks related to the code? (optional)", default="")
 
-    author = ctx.run("git config user.name", hide=True, warn=True).stdout.strip()
+    author = run("gh api user -q .login")
+
 
     experiment_notes = {
         "author": author,
@@ -253,7 +259,8 @@ def gacp(ctx: Context) -> None:
 
     git_commit(ctx, commit_type)
 
-    ctx.run(f"git push --set-upstream origin {current_branch}")
+    run(f"git push --set-upstream origin {current_branch}")
+
 
     if commit_type not in ["WIP", "exp", "backup"]:
         if inquirer.confirm("Create a PR?", default=True):

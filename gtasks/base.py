@@ -1,6 +1,5 @@
-import json
 from typing import List
-
+from invoke import run
 import inquirer
 from invoke.context import Context
 
@@ -27,20 +26,7 @@ COMMIT_TYPES = [
 ]
 
 
-def get_owner_repo(ctx: Context) -> List[str]:
-    """
-    Get the owner and repository name.
-    This function uses the `gh` command to retrieve the owner and repository name.
-    Returns:
-        List[str]: A list containing the owner and repository name.
-    """
-
-    command = "gh repo view --json owner,name --jq '.owner.login, .name'"
-    result = ctx.run(command, hide=True)
-    return result.stdout.strip().split("\n")
-
-
-def parse_collaborators(ctx: Context, owner: str, repo: str) -> List[str]:
+def parse_collaborators(owner: str, repo: str) -> List[str]:
     """
     Parse the collaborators of a repository.
 
@@ -52,8 +38,7 @@ def parse_collaborators(ctx: Context, owner: str, repo: str) -> List[str]:
         List[str]: A list containing the collaborators of the repository.
     """
 
-    command = f"gh api repos/{owner}/{repo}/collaborators --jq '.[].login'"
-    result = ctx.run(command, hide=True)
+    result = run(f"gh api repos/{owner}/{repo}/collaborators --jq '.[].login'")
 
     collaborators = result.stdout.strip().split("\n")
 
@@ -83,27 +68,37 @@ def get_assignee(ctx: Context, owner: str, repo: str) -> str:
     )["assignee"]
 
 
-def get_label_selected(ctx: Context):
+
+def get_owner_repo() -> tuple:
+    """
+    Get the owner and repository name.
+    This function uses the `gh` command to retrieve the owner and repository name.
+    Returns:
+        tuple: A tuple containing the owner and repository name.
+    """
+    owner = run("gh api user -q .login", hide=True).stdout.strip()
+    repo = run("gh api repos/:owner/:repo -q .name", hide=True).stdout.strip()
+    return owner, repo
+
+
+def get_label_selected():
     """
     Get the selected label.
     This function uses the `gh` command to retrieve the labels of a repository.
     Returns:
         str: The selected
     """
-    owner, repo = get_owner_repo(ctx)
-    command = f"gh label list --repo {owner}/{repo} --json name"
-    result = ctx.run(command, hide=True)
 
-    labels_json = json.loads(result.stdout)
+    result = run("gh label list").stdout.strip().split("\n")
 
-    labels_list = [label["name"] for label in labels_json]
+    labels = [line.split("\t")[0] for line in result]
 
     return inquirer.prompt(
         [
             inquirer.List(
                 "label",
                 message="Select the label",
-                choices=[label for label in labels_list],
+                choices=[label for label in labels],
             )
         ]
     )["label"]
