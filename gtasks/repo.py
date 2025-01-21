@@ -1,4 +1,3 @@
-import subprocess
 import inquirer
 import yaml
 import datetime
@@ -10,11 +9,12 @@ from invoke import run
 
 from .base import get_assignee, COMMIT_TYPES, get_owner_repo
 from .branch import git_current_branch
+from invoke.context import Context
 
 # This file contains scripts related to git activities.
 
 
-def git_add() -> None:
+def git_add(ctx: Context) -> None:
     """
     Interactively add changed files to the git staging area.
     This function checks the current git status for any changed files.
@@ -50,6 +50,7 @@ def git_add() -> None:
 
     run(f"git add {files_to_add}")
 
+
     print("Files added to the commit.")
 
 
@@ -71,7 +72,7 @@ def get_commit_type() -> Union[str, Any]:
     )["type"]
 
 
-def git_commit(commit_type) -> None:
+def git_commit(ctx: Context, commit_type) -> None:
     """
     Create a git commit with a formatted commit message based on the provided commit type.
     Args:
@@ -96,6 +97,7 @@ def git_commit(commit_type) -> None:
     commit_message = f"{commit_type}: {description}\n\n{body}"
     if breaking_changes:
         commit_message += f"\n\nBREAKING CHANGE: {breaking_changes}"
+
 
     run(f'git commit -m "{commit_message}"')
 
@@ -150,7 +152,7 @@ def create_PR_body() -> str:
     return body
 
 
-def create_pr(owner: str, repo: str) -> None:
+def create_pr(ctx: Context, owner: str, repo: str) -> None:
     """
     Create a pull request on GitHub for the specified repository.
     Args:
@@ -162,27 +164,27 @@ def create_pr(owner: str, repo: str) -> None:
 
     title = inquirer.text("Enter the PR title")
     body = create_PR_body()
-    assignee = get_assignee(owner, repo)
+    assignee = get_assignee(ctx, owner, repo)
 
     run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
 
 
-def add_commit_submodule(path):
+def add_commit_submodule(ctx: Context, path):
     if os.path.exists(f"{path}"):
         os.chdir(f"{path}")
         if os.path.exists(".git"):
-            subprocess.run(["git", "add", "."])
-            subprocess.run(["git", "commit", "-m", f"Add {path} results"])
+            ctx.run("git add .")
+            ctx.run(f'git commit -m "Add {path} results"')
             os.chdir("..")
-            subprocess.run(["git", "add", f"{path}"])
-            print(f"{path} is added to the  submodule")
+            ctx.run(f"git add {path}")
+            print(f"{path} is added to the submodule")
         else:
             print(f"{path} is pushed to the main repository")
     else:
         print(f"{path} does not exist")
 
 
-def add_experiment_notes():
+def add_experiment_notes(ctx: Context):
     """
     Prompts the user for details about an experiment and saves the notes to a YAML file.
     The function collects the following information from the user:
@@ -212,6 +214,7 @@ def add_experiment_notes():
 
     author = run("gh api user -q .login")
 
+
     experiment_notes = {
         "author": author,
         "date": date_time,
@@ -227,16 +230,16 @@ def add_experiment_notes():
     with open(f"notes/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
-    add_commit_submodule("notes")
+    add_commit_submodule(ctx, "notes")
 
 
 @task
-def gacp(ctx: None) -> None:
+def gacp(ctx: Context) -> None:
     """
     Automates the process of adding, committing, and pushing changes to a Git repository,
     and optionally creates a pull request.
     Args:
-        ctx (None): Context parameter, not used in this function.
+        ctx (Context): Context parameter used to run commands.
     Steps:
         1. Retrieves the owner and repository name.
         2. Gets the current Git branch.
@@ -247,20 +250,21 @@ def gacp(ctx: None) -> None:
         7. If the commit type is not "WIP", "exp", or "backup", prompts the user to create a pull request.
     """
 
-    owner, repo = get_owner_repo()
-    current_branch = git_current_branch()
+    owner, repo = get_owner_repo(ctx)
+    current_branch = git_current_branch(ctx)
 
-    git_add()
+    git_add(ctx)
 
     commit_type = get_commit_type()
 
-    git_commit(commit_type)
+    git_commit(ctx, commit_type)
 
     run(f"git push --set-upstream origin {current_branch}")
 
+
     if commit_type not in ["WIP", "exp", "backup"]:
         if inquirer.confirm("Create a PR?", default=True):
-            create_pr(owner, repo)
+            create_pr(ctx, owner, repo)
 
 
 namespace = Collection("git", gacp)

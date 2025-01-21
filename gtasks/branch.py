@@ -3,10 +3,11 @@ from invoke.tasks import task
 from invoke import Collection
 from invoke import run
 
+
 # This file contains scripts related to branch activities.
 
 
-def git_current_branch() -> str:
+def git_current_branch(ctx: Context) -> str:
     """
     Get the current branch name.
     This function uses the `git` command to retrieve the current branch name.
@@ -17,14 +18,13 @@ def git_current_branch() -> str:
     return run("git symbolic-ref --short HEAD").stdout.strip()
 
 
-def delete_branch(ctx: None) -> None:
+def delete_branch(ctx: Context) -> None:
     """
     Delete the current branch.
     This function uses the `git` command to delete the current branch.
     Returns:
         None
     """
-
     branch = git_current_branch()
     run("git checkout main")
 
@@ -39,7 +39,7 @@ def delete_branch(ctx: None) -> None:
         "issue_id": "The ID of the issue to create a branch from. If not provided, use `gtasks issues.list` to get the issue ID."
     }
 )
-def new(ctx: None, issue_id: int = None) -> None:
+def new(ctx: Context, issue_id: int = None) -> None:
     """
     Create a new branch based on a GitHub issue.
     This function interacts with the GitHub CLI to create a new branch based on the provided issue ID.
@@ -61,6 +61,7 @@ def new(ctx: None, issue_id: int = None) -> None:
     run(f"gh issue develop {issue_id} --name {branch_name} --base main --checkout")
 
     run(f"git checkout -b {branch_name}")
+
 
 
 namespace = Collection("branch", new)

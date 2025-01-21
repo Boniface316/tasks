@@ -1,6 +1,7 @@
 from typing import List
 from invoke import run
 import inquirer
+from invoke.context import Context
 
 # This script contains the base functions that are used in other scripts.
 
@@ -44,7 +45,7 @@ def parse_collaborators(owner: str, repo: str) -> List[str]:
     return [collaborator for collaborator in collaborators]
 
 
-def get_assignee(owner: str, repo: str) -> str:
+def get_assignee(ctx: Context, owner: str, repo: str) -> str:
     """
     Get the assignee for an issue.
     This function uses the `gh` command to retrieve the assignee for an issue.
@@ -55,7 +56,7 @@ def get_assignee(owner: str, repo: str) -> str:
         str: The assignee for the issue.
     """
 
-    collaborators = parse_collaborators(owner, repo)
+    collaborators = parse_collaborators(ctx, owner, repo)
     return inquirer.prompt(
         [
             inquirer.List(
@@ -65,6 +66,7 @@ def get_assignee(owner: str, repo: str) -> str:
             )
         ]
     )["assignee"]
+
 
 
 def get_owner_repo() -> tuple:
