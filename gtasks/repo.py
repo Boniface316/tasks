@@ -46,6 +46,8 @@ def git_add() -> None:
         print("No files selected.")
         return
 
+    breakpoint()
+
     run(f"git add {files_to_add}")
 
     print("Files added to the commit.")

@@ -74,8 +74,8 @@ def get_owner_repo() -> tuple:
     Returns:
         tuple: A tuple containing the owner and repository name.
     """
-    owner = run("gh api user -q .login").stdout.strip()
-    repo = run("gh api repos/:owner/:repo -q .name").stdout.strip()
+    owner = run("gh api user -q .login", hide=True).stdout.strip()
+    repo = run("gh api repos/:owner/:repo -q .name", hide=True).stdout.strip()
     return owner, repo
 
 

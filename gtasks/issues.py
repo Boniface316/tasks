@@ -24,7 +24,7 @@ def get_issues(assignee: str = "@me") -> List[str]:
         List[str]: The list of issues assigned to the user
     """
 
-    issues_list = run(f"gh issue list --assignee={assignee}")
+    issues_list = run(f"gh issue list --assignee={assignee}", hide=True)
 
     return issues_list.stdout.strip().split("\n")
 

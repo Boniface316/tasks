@@ -54,9 +54,10 @@ def new(ctx: None, issue_id: int = None) -> None:
     if issue_id is None:
         issue_id = inquirer.text("Enter the issue ID")
         issue_id = issue_id.split(" ")[0]
-    label = run(f"gh issue view {issue_id} --json labels --jq '.labels[].name'")
+    label = run(f"gh issue view {issue_id} --json labels --jq '.labels[].name'").stdout.split()[0]
     branch_name = inquirer.text("Enter the branch name [Make is similar to the issue title]")
     branch_name = f"{label}/{issue_id}-{branch_name}"
+    breakpoint()
 
     run(f"gh issue develop {issue_id} --name {branch_name} --base main --checkout")
 
