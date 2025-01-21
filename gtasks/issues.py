@@ -175,7 +175,7 @@ def close(ctx: None, issue_id: str = None) -> None:
     run(f"gh issue close {issue_id}")
 
     if inquirer.confirm("Do you want to delete the branch?", default=True):
-        delete_branch()
+        delete_branch(ctx)
 
 
 @task(
