@@ -46,7 +46,7 @@ def git_add() -> None:
         print("No files selected.")
         return
 
-    breakpoint()
+    files_to_add = " ".join(files_to_add)
 
     run(f"git add {files_to_add}")
 
@@ -255,6 +255,8 @@ def gacp(ctx: None) -> None:
     commit_type = get_commit_type()
 
     git_commit(commit_type)
+
+    breakpoint()
 
     run(f"git push --set-upstream origin {current_branch}")
 
