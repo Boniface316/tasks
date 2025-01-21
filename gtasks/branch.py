@@ -14,7 +14,7 @@ def git_current_branch() -> str:
         str: The name of the current branch.
     """
 
-    return run("git symbolic-ref --short HEAD")
+    return run("git symbolic-ref --short HEAD").stdout.strip()[0]
 
 
 def delete_branch(ctx: None) -> None:
@@ -57,7 +57,6 @@ def new(ctx: None, issue_id: int = None) -> None:
     label = run(f"gh issue view {issue_id} --json labels --jq '.labels[].name'").stdout.split()[0]
     branch_name = inquirer.text("Enter the branch name [Make is similar to the issue title]")
     branch_name = f"{label}/{issue_id}-{branch_name}"
-    breakpoint()
 
     run(f"gh issue develop {issue_id} --name {branch_name} --base main --checkout")
 
