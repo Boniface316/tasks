@@ -255,7 +255,6 @@ def gacp(ctx: None) -> None:
     commit_type = get_commit_type()
 
     git_commit(commit_type)
-    breakpoint()
 
     run(f"git push --set-upstream origin {current_branch}")
 

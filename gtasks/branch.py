@@ -14,7 +14,7 @@ def git_current_branch() -> str:
         str: The name of the current branch.
     """
 
-    return run("git symbolic-ref --short HEAD").stdout.strip()[0]
+    return run("git symbolic-ref --short HEAD").stdout.strip()
 
 
 def delete_branch(ctx: None) -> None:
