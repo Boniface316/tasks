@@ -2,9 +2,9 @@ import inquirer
 from .base import get_owner_repo, get_label_selected, get_assignee
 from .branch import delete_branch
 from typing import List
-import subprocess
 from invoke.tasks import task
 from invoke import Collection
+from invoke import run
 
 # This script is used to manage issues in a GitHub repository
 
@@ -24,11 +24,9 @@ def get_issues(assignee: str = "@me") -> List[str]:
         List[str]: The list of issues assigned to the user
     """
 
-    owner, repo = get_owner_repo()
-    assignee = "--assignee=" + assignee
-    command = ["gh", "issue", "list", assignee, f"--repo={owner}/{repo}"]
-    result = subprocess.run(command, capture_output=True, text=True)
-    return result.stdout.strip().split("\n")
+    issues_list = run(f"gh issue list --assignee={assignee}")
+
+    return issues_list.stdout.strip().split("\n")
 
 
 def body_issue_docs() -> str:
@@ -174,7 +172,7 @@ def close(ctx: None, issue_id: str = None) -> None:
             issue_id = inquirer.text("Enter the issue ID to close")
             issue_id = issue_id.split(" ")[0]
 
-    subprocess.run(["gh", "issue", "close", issue_id])
+    run(f"gh issue close {issue_id}")
 
     if inquirer.confirm("Do you want to delete the branch?", default=True):
         delete_branch()
@@ -233,19 +231,11 @@ def new(context: None) -> None:
 
     body = get_issue_body(label)
 
-    command = [
-        "gh",
-        "issue",
-        "create",
-        f"--title={title}",
-        f"--body={body}",
-        f"--repo={owner}/{repo}",
-        f"--label={label}",
-    ]
+    command = f"gh issue create --title='{title}' --body='{body}' --repo='{owner}/{repo}' --label='{label}'"
     if inquirer.confirm("Assign this issue to someone? [True]", default=True):
         assignee = get_assignee(owner, repo)
-        command.append(f"--assignee={assignee}")
-    subprocess.run(command)
+        command += f" --assignee='{assignee}'"
+    run(command)
 
 
 namespace = Collection("issues", close, list, new)

@@ -6,6 +6,7 @@ from typing import Any, Union
 from invoke.tasks import task
 from invoke import Collection
 import os
+from invoke import run
 
 from .base import get_assignee, COMMIT_TYPES, get_owner_repo
 from .branch import git_current_branch
@@ -25,7 +26,7 @@ def git_add() -> None:
     prints a confirmation message.
     """
 
-    result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+    result = run("git status --porcelain")
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
     if not changed_files:
         print("No files to add.")
@@ -45,7 +46,7 @@ def git_add() -> None:
         print("No files selected.")
         return
 
-    subprocess.run(["git", "add"] + files_to_add)
+    run(f"git add {files_to_add}")
 
     print("Files added to the commit.")
 
@@ -94,7 +95,7 @@ def git_commit(commit_type) -> None:
     if breaking_changes:
         commit_message += f"\n\nBREAKING CHANGE: {breaking_changes}"
 
-    subprocess.run(["git", "commit", "-m", commit_message])
+    run(f'git commit -m "{commit_message}"')
 
 
 def create_PR_body() -> str:
@@ -161,17 +162,7 @@ def create_pr(owner: str, repo: str) -> None:
     body = create_PR_body()
     assignee = get_assignee(owner, repo)
 
-    subprocess.run(
-        [
-            "gh",
-            "pr",
-            "create",
-            "--base=main",
-            f"--title={title}",
-            f"--body={body}",
-            f"--assignee={assignee}",
-        ]
-    )
+    run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
 
 
 def add_commit_submodule(path):
@@ -217,9 +208,7 @@ def add_experiment_notes():
     )
     exp_code_risk = inquirer.text("What are the risks related to the code? (optional)", default="")
 
-    author = subprocess.run(
-        ["git", "config", "user.name"], capture_output=True, text=True
-    ).stdout.strip()
+    author = run("gh api user -q .login")
 
     experiment_notes = {
         "author": author,
@@ -265,7 +254,7 @@ def gacp(ctx: None) -> None:
 
     git_commit(commit_type)
 
-    subprocess.run(["git", "push", "--set-upstream", "origin", current_branch])
+    run(f"git push --set-upstream origin {current_branch}")
 
     if commit_type not in ["WIP", "exp", "backup"]:
         if inquirer.confirm("Create a PR?", default=True):

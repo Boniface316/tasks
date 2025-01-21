@@ -1,7 +1,5 @@
-import json
-import subprocess
 from typing import List
-
+from invoke import run
 import inquirer
 
 # This script contains the base functions that are used in other scripts.
@@ -27,28 +25,6 @@ COMMIT_TYPES = [
 ]
 
 
-def get_owner_repo() -> List[str]:
-    """
-    Get the owner and repository name.
-    This function uses the `gh` command to retrieve the owner and repository name.
-    Returns:
-        List[str]: A list containing the owner and repository name.
-    """
-
-    command = [
-        "gh",
-        "repo",
-        "view",
-        "--json",
-        "owner,name",
-        "--jq",
-        ".owner.login, .name",
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    print(result.stdout.strip().split("\n"))
-    return result.stdout.strip().split("\n")
-
-
 def parse_collaborators(owner: str, repo: str) -> List[str]:
     """
     Parse the collaborators of a repository.
@@ -61,8 +37,7 @@ def parse_collaborators(owner: str, repo: str) -> List[str]:
         List[str]: A list containing the collaborators of the repository.
     """
 
-    command = ["gh", "api", f"repos/{owner}/{repo}/collaborators", "--jq", ".[].login"]
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = run(f"gh api repos/{owner}/{repo}/collaborators --jq '.[].login'")
 
     collaborators = result.stdout.strip().split("\n")
 
@@ -92,6 +67,18 @@ def get_assignee(owner: str, repo: str) -> str:
     )["assignee"]
 
 
+def get_owner_repo() -> tuple:
+    """
+    Get the owner and repository name.
+    This function uses the `gh` command to retrieve the owner and repository name.
+    Returns:
+        tuple: A tuple containing the owner and repository name.
+    """
+    owner = run("gh api user -q .login").stdout.strip()
+    repo = run("gh api repos/:owner/:repo -q .name").stdout.strip()
+    return owner, repo
+
+
 def get_label_selected():
     """
     Get the selected label.
@@ -99,23 +86,17 @@ def get_label_selected():
     Returns:
         str: The selected
     """
-    owner, repo = get_owner_repo()
-    result = subprocess.run(
-        ["gh", "label", "list", "--repo", f"{owner}/{repo}", "--json", "name"],
-        stdout=subprocess.PIPE,
-        text=True,
-    )
 
-    labels_json = json.loads(result.stdout)
+    result = run("gh label list").stdout.strip().split("\n")
 
-    labels_list = [label["name"] for label in labels_json]
+    labels = [line.split("\t")[0] for line in result]
 
     return inquirer.prompt(
         [
             inquirer.List(
                 "label",
                 message="Select the label",
-                choices=[label for label in labels_list],
+                choices=[label for label in labels],
             )
         ]
     )["label"]
