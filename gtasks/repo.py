@@ -223,8 +223,21 @@ def add_experiment_notes():
         "code_risk": exp_code_risk,
     }
 
+    # List folders and prompt the user to select the notes folder
+    folders = [f for f in os.listdir() if os.path.isdir(f)]
+    notes_folder = inquirer.prompt(
+        [
+            inquirer.List(
+                "folder",
+                message="Select the folder to save the notes",
+                choices=folders,
+                default="notes",
+            )
+        ]
+    )["folder"]
+
     # Save the experiment notes to a YAML file
-    with open(f"notes/{date_time}.yaml", "w") as file:
+    with open(f"{notes_folder}/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
     add_commit_submodule("notes")
