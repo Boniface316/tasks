@@ -31,7 +31,7 @@ def delete_branch() -> None:
     print("Deleting branch local branch")
     run(f"git branch -d {branch}")
     print("Deleting branch remote branch")
-    run("git push origin --delete {branch}")
+    run(f"git push origin --delete {branch}")
 
 
 @task(
