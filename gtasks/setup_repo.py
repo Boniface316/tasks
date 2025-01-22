@@ -59,15 +59,34 @@ def labels(ctx: None) -> None:
     owner, repo = get_owner_repo()
     existing_labels = get_existing_labels(owner, repo)
     for label in existing_labels:
-        run(f"gh label delete {label['name']} --repo {owner}/{repo} --yes")
-        print(f"Deleted label: {label['name']}")
+        subprocess.run(
+            [
+                "gh",
+                "label",
+                "delete",
+                label["name"],
+                "--repo",
+                f"{owner}/{repo}",
+                "--yes",  # Automatically confirm deletion
+            ]
+        )
 
     # Update with the provided labels
     for label in labels_list:
-        run(
-            f'gh label create {label["name"]} --color {label["color"]} --description "{label["description"]}" --repo {owner}/{repo}'
+        subprocess.run(
+            [
+                "gh",
+                "label",
+                "create",
+                label["name"],
+                "--color",
+                label["color"],
+                "--description",
+                label["description"],
+                "--repo",
+                f"{owner}/{repo}",
+            ]
         )
-        print(f"Created label: {label['name']}")
 
 
 @task
