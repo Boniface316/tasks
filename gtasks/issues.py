@@ -9,7 +9,7 @@ from invoke.context import Context
 # This script is used to manage issues in a GitHub repository
 
 
-def get_issues(ctx, assignee: str = "@me") -> List[str]:
+def get_issues(assignee: str = "@me") -> List[str]:
     """
     Get the list of issues assigned to the user.
 
@@ -165,7 +165,7 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
     """
 
     if issue_id is None:
-        issues = get_issues(ctx, assignee)
+        issues = get_issues(assignee)
         issues.append("Other")
         issue_id = inquirer.text("Enter the issue ID to close", choices=issues)
 
@@ -176,7 +176,7 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
     run(f"gh issue close {issue_id}")
 
     if inquirer.confirm("Do you want to delete the branch?", default=True):
-        delete_branch(ctx)
+        delete_branch()
 
 
 @task(
