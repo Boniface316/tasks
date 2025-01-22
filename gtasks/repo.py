@@ -259,10 +259,13 @@ def get_submodules():
         List[str]: A list containing the submodules in the repository.
     """
 
-    result = run("git config --file .gitmodules --get-regexp path", hide=True)
-    submodules = [line.split()[1] for line in result.stdout.splitlines()]
+    try:
+        result = run("git config --file .gitmodules --get-regexp path", hide=True)
+        submodules = [line.split()[1] for line in result.stdout.splitlines()]
+    except Exception:
+        submodules = []
 
-    return submodules
+        return submodules
 
 
 @task
