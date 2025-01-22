@@ -2,6 +2,7 @@ from invoke import Collection
 
 import json
 import subprocess
+import inquirer
 from typing import Dict, List, Union
 
 from invoke.tasks import task
@@ -89,12 +90,39 @@ def labels(ctx: None) -> None:
         )
 
 
+def create_submodules():
+    """
+    Create the submodules in the repository.
+    This function uses the GitHub CLI to create the submodules in the repository.
+    Returns:
+        None
+    """
+
+    owner, repo = get_owner_repo()
+    path = inquirer.text("Enter the name of the submodule folder i.e notes")
+    repo_name = f"{repo}_{path}"
+    try:
+        run(f"gh repo create {repo_name} --private --add-readme")
+        run(f"git submodule add https://github.com/{owner}/{repo_name}.git {path}")
+        run(f"git add .gitmodules {path}")
+        run(f'git commit -m "Add {path} submodules"')
+        run("git push")
+        print(f"Successfully created and added {path} as submodule.")
+
+    except subprocess.CalledProcessError as e:
+        if "already exists in the index" in e.stderr.decode():
+            print(f"Submodule {path} already exists, skipping creation.")
+        else:
+            raise
+
+
 @task
 def submodule(ctx: None) -> None:
     """
     Set up the repository to use submodules.
     """
-    subprocess.run(["git", "config", "push.recurseSubmodules", "on-demand"])
+    create_submodules()
+    run("git config push.recurseSubmodules on-demand")
 
 
 namespace = Collection("setup", labels, submodule)

@@ -25,9 +25,20 @@ def git_add() -> None:
     Otherwise, it adds the selected files to the git staging area and
     prints a confirmation message.
     """
-
+    submodules = get_submodules()
     result = run("git status --porcelain")
+
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
+    submodule_files = [
+        file
+        for file in changed_files
+        if any(file.startswith(submodule) for submodule in submodules)
+    ]
+
+    if submodule_files:
+        for file in submodule_files:
+            add_commit_submodule(file)
+
     if not changed_files:
         print("No files to add.")
         return
@@ -174,7 +185,6 @@ def add_commit_submodule(path):
             run("git add .")
             run(f'git commit -m "Add {path} results"')
             os.chdir("..")
-            run(f"git add {path}")
             print(f"{path} is added to the submodule")
         else:
             print(f"{path} is pushed to the main repository")
@@ -223,11 +233,36 @@ def add_experiment_notes():
         "code_risk": exp_code_risk,
     }
 
+    # List folders and prompt the user to select the notes folder
+    folders = [f for f in os.listdir() if os.path.isdir(f)]
+    notes_folder = inquirer.prompt(
+        [
+            inquirer.List(
+                "folder",
+                message="Select the folder to save the notes",
+                choices=folders,
+                default="notes",
+            )
+        ]
+    )["folder"]
+
     # Save the experiment notes to a YAML file
-    with open(f"notes/{date_time}.yaml", "w") as file:
+    with open(f"{notes_folder}/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
-    add_commit_submodule("notes")
+
+def get_submodules():
+    """
+    Get the submodules in the repository.
+    This function uses the `git` command to retrieve the submodules in the repository.
+    Returns:
+        List[str]: A list containing the submodules in the repository.
+    """
+
+    result = run("git config --file .gitmodules --get-regexp path", hide=True)
+    submodules = [line.split()[1] for line in result.stdout.splitlines()]
+
+    return submodules
 
 
 @task
@@ -256,7 +291,10 @@ def gacp(ctx: Context) -> None:
 
     git_commit(commit_type)
 
-    run(f"git push --set-upstream origin {current_branch}")
+    try:
+        run(f"git push --set-upstream origin {current_branch}")
+    except Exception:
+        run("git push --all")
 
     if commit_type not in ["WIP", "exp", "backup"]:
         if inquirer.confirm("Create a PR?", default=True):
