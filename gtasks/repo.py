@@ -25,9 +25,20 @@ def git_add() -> None:
     Otherwise, it adds the selected files to the git staging area and
     prints a confirmation message.
     """
-
+    submodules = get_submodules()
     result = run("git status --porcelain")
+
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
+    submodule_files = [
+        file
+        for file in changed_files
+        if any(file.startswith(submodule) for submodule in submodules)
+    ]
+
+    if submodule_files:
+        for file in submodule_files:
+            add_commit_submodule(file)
+
     if not changed_files:
         print("No files to add.")
         return
@@ -174,7 +185,6 @@ def add_commit_submodule(path):
             run("git add .")
             run(f'git commit -m "Add {path} results"')
             os.chdir("..")
-            run(f"git add {path}")
             print(f"{path} is added to the submodule")
         else:
             print(f"{path} is pushed to the main repository")
@@ -240,7 +250,19 @@ def add_experiment_notes():
     with open(f"{notes_folder}/{date_time}.yaml", "w") as file:
         yaml.dump(experiment_notes, file)
 
-    add_commit_submodule("notes")
+
+def get_submodules():
+    """
+    Get the submodules in the repository.
+    This function uses the `git` command to retrieve the submodules in the repository.
+    Returns:
+        List[str]: A list containing the submodules in the repository.
+    """
+
+    result = run("git config --file .gitmodules --get-regexp path", hide=True)
+    submodules = [line.split()[1] for line in result.stdout.splitlines()]
+
+    return submodules
 
 
 @task
