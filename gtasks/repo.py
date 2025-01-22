@@ -269,7 +269,10 @@ def gacp(ctx: Context) -> None:
 
     git_commit(commit_type)
 
-    run(f"git push --set-upstream origin {current_branch} --all")
+    try:
+        run(f"git push --set-upstream origin {current_branch}")
+    except Exception:
+        run("git push --all")
 
     if commit_type not in ["WIP", "exp", "backup"]:
         if inquirer.confirm("Create a PR?", default=True):
