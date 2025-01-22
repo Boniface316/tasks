@@ -26,6 +26,7 @@ def git_add() -> None:
     prints a confirmation message.
     """
     submodules = get_submodules()
+    breakpoint()
     result = run("git status --porcelain")
 
     changed_files = [line[3:] for line in result.stdout.splitlines() if line]
@@ -265,7 +266,7 @@ def get_submodules():
     except Exception:
         submodules = []
 
-        return submodules
+    return submodules
 
 
 @task
