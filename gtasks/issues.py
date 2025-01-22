@@ -206,11 +206,15 @@ def list(ctx: Context, assignee: str = "@me") -> None:
     lines = get_issues(assignee)
 
     print(f"Open Issues Assigned to {assignee}:")
-    for line in lines:
-        parts = line.split("\t")
-        issue_id = parts[0]
-        title = parts[2]
-        print(f"{issue_id} - {title}")
+
+    if lines == [""]:
+        print("No issues found")
+    else:
+        for line in lines:
+            parts = line.split("\t")
+            issue_id = parts[0]
+            title = parts[2]
+            print(f"{issue_id} - {title}")
 
 
 @task
