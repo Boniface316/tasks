@@ -203,7 +203,7 @@ def list(ctx: Context, assignee: str = "@me") -> None:
         None
 
     """
-    lines = get_issues(ctx, assignee)
+    lines = get_issues(assignee)
 
     print(f"Open Issues Assigned to {assignee}:")
     for line in lines:
