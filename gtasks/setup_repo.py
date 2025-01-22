@@ -44,7 +44,6 @@ def get_existing_labels(owner: str, repo: str) -> List[Dict[str, Union[str, int]
     """
     result = run(f"gh api repos/{owner}/{repo}/labels", hide=True)
     existing_labels = result.stdout
-    breakpoint()
     return json.loads(existing_labels)  # type: List[Dict[str, Union[str, int]]]
 
 
@@ -60,34 +59,15 @@ def labels(ctx: None) -> None:
     owner, repo = get_owner_repo()
     existing_labels = get_existing_labels(owner, repo)
     for label in existing_labels:
-        subprocess.run(
-            [
-                "gh",
-                "label",
-                "delete",
-                label["name"],
-                "--repo",
-                f"{owner}/{repo}",
-                "--yes",  # Automatically confirm deletion
-            ]
-        )
+        run(f"gh label delete {label['name']} --repo {owner}/{repo} --yes")
+        print(f"Deleted label: {label['name']}")
 
     # Update with the provided labels
     for label in labels_list:
-        subprocess.run(
-            [
-                "gh",
-                "label",
-                "create",
-                label["name"],
-                "--color",
-                label["color"],
-                "--description",
-                label["description"],
-                "--repo",
-                f"{owner}/{repo}",
-            ]
+        run(
+            f'gh label create {label["name"]} --color {label["color"]} --description "{label["description"]}" --repo {owner}/{repo}'
         )
+        print(f"Created label: {label['name']}")
 
 
 @task

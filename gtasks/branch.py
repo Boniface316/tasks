@@ -2,12 +2,12 @@ import inquirer
 from invoke.tasks import task
 from invoke import Collection
 from invoke import run
-
+from invoke.context import Context
 
 # This file contains scripts related to branch activities.
 
 
-def git_current_branch(ctx: Context) -> str:
+def git_current_branch() -> str:
     """
     Get the current branch name.
     This function uses the `git` command to retrieve the current branch name.
@@ -18,7 +18,7 @@ def git_current_branch(ctx: Context) -> str:
     return run("git symbolic-ref --short HEAD").stdout.strip()
 
 
-def delete_branch(ctx: Context) -> None:
+def delete_branch() -> None:
     """
     Delete the current branch.
     This function uses the `git` command to delete the current branch.
@@ -54,14 +54,15 @@ def new(ctx: Context, issue_id: int = None) -> None:
     if issue_id is None:
         issue_id = inquirer.text("Enter the issue ID")
         issue_id = issue_id.split(" ")[0]
-    label = run(f"gh issue view {issue_id} --json labels --jq '.labels[].name'").stdout.split()[0]
+    label = run(
+        f"gh issue view {issue_id} --json labels --jq '.labels[].name'", hide=True
+    ).stdout.split()[0]
     branch_name = inquirer.text("Enter the branch name [Make is similar to the issue title]")
     branch_name = f"{label}/{issue_id}-{branch_name}"
 
     run(f"gh issue develop {issue_id} --name {branch_name} --base main --checkout")
 
     run(f"git checkout -b {branch_name}")
-
 
 
 namespace = Collection("branch", new)

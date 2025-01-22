@@ -5,7 +5,7 @@ from typing import List
 from invoke.tasks import task
 from invoke import Collection
 from invoke import run
-
+from invoke.context import Context
 # This script is used to manage issues in a GitHub repository
 
 
@@ -27,6 +27,7 @@ def get_issues(ctx, assignee: str = "@me") -> List[str]:
     issues_list = run(f"gh issue list --assignee={assignee}", hide=True)
 
     return issues_list.stdout.strip().split("\n")
+
 
 def body_issue_docs() -> str:
     """
@@ -224,10 +225,10 @@ def new(ctx: Context) -> None:
 
     """
 
-    owner, repo = get_owner_repo(ctx)
+    owner, repo = get_owner_repo()
 
     title = inquirer.text("Enter the issue title")
-    label = get_label_selected(ctx)
+    label = get_label_selected()
 
     body = get_issue_body(label)
 
