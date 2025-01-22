@@ -265,7 +265,7 @@ def get_submodules():
     except Exception:
         submodules = []
 
-        return submodules
+    return submodules
 
 
 @task
