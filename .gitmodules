@@ -4,3 +4,6 @@
 [submodule "bench"]
 	path = bench
 	url = https://github.com/Boniface316/tasks_bench.git
+[submodule "bb"]
+	path = bb
+	url = https://github.com/Boniface316/tasks_bb.git
