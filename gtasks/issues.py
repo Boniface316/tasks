@@ -1,15 +1,34 @@
+from typing import (
+    List,
+)
+
 import inquirer
-from .base import get_owner_repo, get_label_selected, get_assignee
-from .branch import delete_branch
-from typing import List
-from invoke.tasks import task
-from invoke import Collection
-from invoke import run
-from invoke.context import Context
+from invoke import (
+    Collection,
+    run,
+)
+from invoke.context import (
+    Context,
+)
+from invoke.tasks import (
+    task,
+)
+
+from .base import (
+    get_assignee,
+    get_label_selected,
+    get_owner_repo,
+)
+from .branch import (
+    delete_branch,
+)
+
 # This script is used to manage issues in a GitHub repository
 
 
-def get_issues(assignee: str = "@me") -> List[str]:
+def get_issues(
+    assignee: str = "@me",
+) -> List[str]:
     """
     Get the list of issues assigned to the user.
 
@@ -24,7 +43,10 @@ def get_issues(assignee: str = "@me") -> List[str]:
         List[str]: The list of issues assigned to the user
     """
 
-    issues_list = run(f"gh issue list --assignee={assignee}", hide=True)
+    issues_list = run(
+        f"gh issue list --assignee={assignee}",
+        hide=True,
+    )
 
     return issues_list.stdout.strip().split("\n")
 
@@ -38,19 +60,36 @@ def body_issue_docs() -> str:
 
     """
     description = inquirer.text("Enter the issue description")
-    location = inquirer.text("Enter the location of the documentation [Optional]", default="")
+    location = inquirer.text(
+        "Enter the location of the documentation [Optional]",
+        default="",
+    )
     issue_type = inquirer.prompt(
         [
             inquirer.List(
                 "type",
                 message="Select the type of documentation",
-                choices=["Missing", "Outdated", "Typo", "Inaccurate"],
+                choices=[
+                    "Missing",
+                    "Outdated",
+                    "Typo",
+                    "Inaccurate",
+                ],
             )
         ]
     )["type"]
-    details = inquirer.text("Enter the details of the issue [Optional]", default="")
-    suggestion = inquirer.text("Enter the suggestion to fix the issue [Optional]", default="")
-    additional = inquirer.text("Enter any additional information [Optional]", default="")
+    details = inquirer.text(
+        "Enter the details of the issue [Optional]",
+        default="",
+    )
+    suggestion = inquirer.text(
+        "Enter the suggestion to fix the issue [Optional]",
+        default="",
+    )
+    additional = inquirer.text(
+        "Enter any additional information [Optional]",
+        default="",
+    )
 
     body = "## Description\n\n"
     body += f"{description}\n\n"
@@ -82,7 +121,10 @@ def body_issue_feat() -> str:
         "Describe any alternative solutions you have in mind if the feature is not feasible [Optional]",
         default="",
     )
-    additional = inquirer.text("Enter any additional information [Optional]", default="")
+    additional = inquirer.text(
+        "Enter any additional information [Optional]",
+        default="",
+    )
 
     body = "## Description\n\n"
     body += f"{description}\n\n"
@@ -95,7 +137,9 @@ def body_issue_feat() -> str:
     return body
 
 
-def get_issue_body(label: str) -> str:
+def get_issue_body(
+    label: str,
+) -> str:
     """
     Get the body of the issue based on the label.
 
@@ -130,7 +174,10 @@ def body_issue_bug() -> str:
     steps = inquirer.text("Enter the steps to reproduce the problem")
     expected = inquirer.text("Enter the expected behavior")
     actual = inquirer.text("Enter the actual behavior")
-    additional = inquirer.text("Enter any additional information [Optional]", default="")
+    additional = inquirer.text(
+        "Enter any additional information [Optional]",
+        default="",
+    )
 
     body = "## Description\n\n"
     body += f"{description}\n\n"
@@ -150,7 +197,11 @@ def body_issue_bug() -> str:
         "issue_id": "The ID of the issue to close",
     }
 )
-def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
+def close(
+    ctx: Context,
+    issue_id: str = None,
+    assignee: str = "@me",
+) -> None:
     """
     Close an issue.
 
@@ -167,7 +218,10 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
     if issue_id is None:
         issues = get_issues(assignee)
         issues.append("Other")
-        issue_id = inquirer.text("Enter the issue ID to close", choices=issues)
+        issue_id = inquirer.text(
+            "Enter the issue ID to close",
+            choices=issues,
+        )
 
         if issue_id == "Other":
             issue_id = inquirer.text("Enter the issue ID to close")
@@ -175,7 +229,10 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
 
     run(f"gh issue close {issue_id}")
 
-    if inquirer.confirm("Do you want to delete the branch?", default=True):
+    if inquirer.confirm(
+        "Do you want to delete the branch?",
+        default=True,
+    ):
         delete_branch()
 
 
@@ -184,7 +241,10 @@ def close(ctx: Context, issue_id: str = None, assignee: str = "@me") -> None:
         "assignee": "The assignee of the issues. Defaults to '@me'. Use 'all-open' to get all issues. Use 'none' to get unassigned issues. Use the username to get issues assigned to that user.",
     }
 )
-def list(ctx: Context, assignee: str = "@me") -> None:
+def list(
+    ctx: Context,
+    assignee: str = "@me",
+) -> None:
     """
     List the open issues assigned to the user.
 
@@ -218,7 +278,9 @@ def list(ctx: Context, assignee: str = "@me") -> None:
 
 
 @task
-def new(ctx: Context) -> None:
+def new(
+    ctx: Context,
+) -> None:
     """
     Create a new issue.
 
@@ -229,7 +291,10 @@ def new(ctx: Context) -> None:
 
     """
 
-    owner, repo = get_owner_repo()
+    (
+        owner,
+        repo,
+    ) = get_owner_repo()
 
     title = inquirer.text("Enter the issue title")
     label = get_label_selected()
@@ -237,10 +302,21 @@ def new(ctx: Context) -> None:
     body = get_issue_body(label)
 
     command = f"gh issue create --title='{title}' --body='{body}' --repo='{owner}/{repo}' --label='{label}'"
-    if inquirer.confirm("Assign this issue to someone? [True]", default=True):
-        assignee = get_assignee(owner, repo)
+    if inquirer.confirm(
+        "Assign this issue to someone? [True]",
+        default=True,
+    ):
+        assignee = get_assignee(
+            owner,
+            repo,
+        )
         command += f" --assignee='{assignee}'"
     run(command)
 
 
-namespace = Collection("issues", close, list, new)
+namespace = Collection(
+    "issues",
+    close,
+    list,
+    new,
+)

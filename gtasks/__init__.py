@@ -1,1 +1,15 @@
-from . import base, repo, setup_repo, main, issues, branch
+from . import (
+    base,
+    branch,
+    cleans,
+    containers,
+    docs,
+    formats,
+    git,
+    installs,
+    issues,
+    main,
+    packages,
+    projects,
+    setup_repo,
+)

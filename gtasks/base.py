@@ -1,31 +1,73 @@
-from typing import List
-from invoke import run
+from typing import (
+    List,
+)
+
 import inquirer
+from invoke import (
+    run,
+    task,
+)
 
 # This script contains the base functions that are used in other scripts.
 
 
 # Define the types of commits
 COMMIT_TYPES = [
-    ("fix", "A bug fix."),
-    ("feat", "A new feature."),
-    ("WIP", "Work in progress."),
-    ("exp", "A code to recreate experimentation or experimentation results"),
-    ("refactor", "A code changes that niether fixes a bur nor adds a feature."),
-    ("perf", "A code change that improves performance."),
-    ("docs", "Docs Documentation only changes."),
-    ("test", "Test Adding missing or correcting existing tests."),
+    (
+        "fix",
+        "A bug fix.",
+    ),
+    (
+        "feat",
+        "A new feature.",
+    ),
+    (
+        "WIP",
+        "Work in progress.",
+    ),
+    (
+        "exp",
+        "A code to recreate experimentation or experimentation results",
+    ),
+    (
+        "refactor",
+        "A code changes that niether fixes a bur nor adds a feature.",
+    ),
+    (
+        "perf",
+        "A code change that improves performance.",
+    ),
+    (
+        "docs",
+        "Docs Documentation only changes.",
+    ),
+    (
+        "test",
+        "Test Adding missing or correcting existing tests.",
+    ),
     (
         "build",
         "Changes that affect the build system or external dependencies (i.e pip, docker, .toml).",
     ),
-    ("chor", "Chores like changing folder structure, renaming files, etc."),
-    ("ci", " Changes to our CI configration files and scripts."),
-    ("backup", "Backup."),
+    (
+        "chor",
+        "Chores like changing folder structure, renaming files, etc.",
+    ),
+    (
+        "ci",
+        " Changes to our CI configration files and scripts.",
+    ),
+    (
+        "backup",
+        "Backup.",
+    ),
 ]
 
 
-def parse_collaborators(owner: str, repo: str) -> List[str]:
+def parse_collaborators(
+    owner: str,
+    repo: str,
+) -> List[str]:
     """
     Parse the collaborators of a repository.
 
@@ -44,7 +86,10 @@ def parse_collaborators(owner: str, repo: str) -> List[str]:
     return [collaborator for collaborator in collaborators]
 
 
-def get_assignee(owner: str, repo: str) -> str:
+def get_assignee(
+    owner: str,
+    repo: str,
+) -> str:
     """
     Get the assignee for an issue.
     This function uses the `gh` command to retrieve the assignee for an issue.
@@ -55,7 +100,10 @@ def get_assignee(owner: str, repo: str) -> str:
         str: The assignee for the issue.
     """
 
-    collaborators = parse_collaborators(owner, repo)
+    collaborators = parse_collaborators(
+        owner,
+        repo,
+    )
     return inquirer.prompt(
         [
             inquirer.List(
@@ -74,9 +122,18 @@ def get_owner_repo() -> tuple:
     Returns:
         tuple: A tuple containing the owner and repository name.
     """
-    owner = run("gh api user -q .login", hide=True).stdout.strip()
-    repo = run("gh api repos/:owner/:repo -q .name", hide=True).stdout.strip()
-    return owner, repo
+    owner = run(
+        "gh api user -q .login",
+        hide=True,
+    ).stdout.strip()
+    repo = run(
+        "gh api repos/:owner/:repo -q .name",
+        hide=True,
+    ).stdout.strip()
+    return (
+        owner,
+        repo,
+    )
 
 
 def get_label_selected():

@@ -1,15 +1,31 @@
+import datetime
+import os
+from typing import (
+    Any,
+    Union,
+)
+
 import inquirer
 import yaml
-import datetime
-from typing import Any, Union
-from invoke.tasks import task
-from invoke import Collection
-import os
-from invoke import run
+from invoke import (
+    Collection,
+    run,
+)
+from invoke.context import (
+    Context,
+)
+from invoke.tasks import (
+    task,
+)
 
-from .base import get_assignee, COMMIT_TYPES, get_owner_repo
-from .branch import git_current_branch
-from invoke.context import Context
+from .base import (
+    COMMIT_TYPES,
+    get_assignee,
+    get_owner_repo,
+)
+from .branch import (
+    git_current_branch,
+)
 
 # This file contains scripts related to git activities.
 
@@ -64,7 +80,10 @@ def git_add() -> None:
     print("Files added to the commit.")
 
 
-def get_commit_type() -> Union[str, Any]:
+def get_commit_type() -> Union[
+    str,
+    Any,
+]:
     """
     Prompts the user to select the type of change they are committing from a list of commit types.
     Returns:
@@ -82,7 +101,9 @@ def get_commit_type() -> Union[str, Any]:
     )["type"]
 
 
-def git_commit(commit_type) -> None:
+def git_commit(
+    commit_type,
+) -> None:
     """
     Create a git commit with a formatted commit message based on the provided commit type.
     Args:
@@ -94,14 +115,23 @@ def git_commit(commit_type) -> None:
     if commit_type == "exp":
         add_experiment_notes()
     elif commit_type == "WIP":
-        if inquirer.confirm("Do you want to add experiment notes? [True]", default=True):
+        if inquirer.confirm(
+            "Do you want to add experiment notes? [True]",
+            default=True,
+        ):
             add_experiment_notes()
 
     description = inquirer.text("Enter a short description of the change [code]")
 
-    body = inquirer.text("Enter a longer description of the change [code] (optional)", default="")
+    body = inquirer.text(
+        "Enter a longer description of the change [code] (optional)",
+        default="",
+    )
 
-    breaking_changes = inquirer.text("Are there any breaking changes? (optional)", default="")
+    breaking_changes = inquirer.text(
+        "Are there any breaking changes? (optional)",
+        default="",
+    )
 
     # Format the commit message
     commit_message = f"{commit_type}: {description}\n\n{body}"
@@ -134,11 +164,18 @@ def create_PR_body() -> str:
         default="",
     )
 
-    confirm_revision = inquirer.confirm("I have self-reviewed my code.", default=True)
-    confirm_tests = inquirer.confirm(
-        "I have included test cases validating introduced feature/fix.", default=True
+    confirm_revision = inquirer.confirm(
+        "I have self-reviewed my code.",
+        default=True,
     )
-    confirm_docs = inquirer.confirm("I have updated the documentation.", default=True)
+    confirm_tests = inquirer.confirm(
+        "I have included test cases validating introduced feature/fix.",
+        default=True,
+    )
+    confirm_docs = inquirer.confirm(
+        "I have updated the documentation.",
+        default=True,
+    )
 
     body = "## Description\n"
 
@@ -161,7 +198,10 @@ def create_PR_body() -> str:
     return body
 
 
-def create_pr(owner: str, repo: str) -> None:
+def create_pr(
+    owner: str,
+    repo: str,
+) -> None:
     """
     Create a pull request on GitHub for the specified repository.
     Args:
@@ -173,12 +213,17 @@ def create_pr(owner: str, repo: str) -> None:
 
     title = inquirer.text("Enter the PR title")
     body = create_PR_body()
-    assignee = get_assignee(owner, repo)
+    assignee = get_assignee(
+        owner,
+        repo,
+    )
 
     run(f'gh pr create --base=main --title="{title}" --body="{body}" --assignee="{assignee}"')
 
 
-def add_commit_submodule(path):
+def add_commit_submodule(
+    path,
+):
     if os.path.exists(f"{path}"):
         os.chdir(f"{path}")
         if os.path.exists(".git"):
@@ -213,12 +258,18 @@ def add_experiment_notes():
     exp_hypothesis = inquirer.text("What was the hypothesis?")
     exp_results = inquirer.text("What were the results?")
     exp_conclusion = inquirer.text("What is the conclusion?")
-    exp_data_risk = inquirer.text("What are the risks related to data? (optional)", default="")
+    exp_data_risk = inquirer.text(
+        "What are the risks related to data? (optional)",
+        default="",
+    )
     exp_model_risk = inquirer.text(
         "What are the risks related to the model? (optional)",
         default="",
     )
-    exp_code_risk = inquirer.text("What are the risks related to the code? (optional)", default="")
+    exp_code_risk = inquirer.text(
+        "What are the risks related to the code? (optional)",
+        default="",
+    )
 
     author = run("gh api user -q .login")
 
@@ -247,8 +298,14 @@ def add_experiment_notes():
     )["folder"]
 
     # Save the experiment notes to a YAML file
-    with open(f"{notes_folder}/{date_time}.yaml", "w") as file:
-        yaml.dump(experiment_notes, file)
+    with open(
+        f"{notes_folder}/{date_time}.yaml",
+        "w",
+    ) as file:
+        yaml.dump(
+            experiment_notes,
+            file,
+        )
 
 
 def get_submodules():
@@ -260,7 +317,10 @@ def get_submodules():
     """
 
     try:
-        result = run("git config --file .gitmodules --get-regexp path", hide=True)
+        result = run(
+            "git config --file .gitmodules --get-regexp path",
+            hide=True,
+        )
         submodules = [line.split()[1] for line in result.stdout.splitlines()]
     except Exception:
         submodules = []
@@ -269,7 +329,9 @@ def get_submodules():
 
 
 @task
-def gacp(ctx: Context) -> None:
+def gacp(
+    ctx: Context,
+) -> None:
     """
     Automates the process of adding, committing, and pushing changes to a Git repository,
     and optionally creates a pull request.
@@ -285,7 +347,10 @@ def gacp(ctx: Context) -> None:
         7. If the commit type is not "WIP", "exp", or "backup", prompts the user to create a pull request.
     """
 
-    owner, repo = get_owner_repo()
+    (
+        owner,
+        repo,
+    ) = get_owner_repo()
     current_branch = git_current_branch()
 
     git_add()
@@ -299,9 +364,22 @@ def gacp(ctx: Context) -> None:
     except Exception:
         run("git push --all")
 
-    if commit_type not in ["WIP", "exp", "backup"]:
-        if inquirer.confirm("Create a PR?", default=True):
-            create_pr(owner, repo)
+    if commit_type not in [
+        "WIP",
+        "exp",
+        "backup",
+    ]:
+        if inquirer.confirm(
+            "Create a PR?",
+            default=True,
+        ):
+            create_pr(
+                owner,
+                repo,
+            )
 
 
-namespace = Collection("git", gacp)
+namespace = Collection(
+    "git",
+    gacp,
+)

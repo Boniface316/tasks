@@ -1,8 +1,14 @@
 import inquirer
-from invoke.tasks import task
-from invoke import Collection
-from invoke import run
-from invoke.context import Context
+from invoke import (
+    Collection,
+    run,
+)
+from invoke.context import (
+    Context,
+)
+from invoke.tasks import (
+    task,
+)
 
 # This file contains scripts related to branch activities.
 
@@ -39,7 +45,10 @@ def delete_branch() -> None:
         "issue_id": "The ID of the issue to create a branch from. If not provided, use `gtasks issues.list` to get the issue ID."
     }
 )
-def new(ctx: Context, issue_id: int = None) -> None:
+def new(
+    _: Context,
+    issue_id: int = None,
+) -> None:
     """
     Create a new branch based on a GitHub issue.
     This function interacts with the GitHub CLI to create a new branch based on the provided issue ID.
@@ -55,7 +64,8 @@ def new(ctx: Context, issue_id: int = None) -> None:
         issue_id = inquirer.text("Enter the issue ID")
         issue_id = issue_id.split(" ")[0]
     label = run(
-        f"gh issue view {issue_id} --json labels --jq '.labels[].name'", hide=True
+        f"gh issue view {issue_id} --json labels --jq '.labels[].name'",
+        hide=True,
     ).stdout.split()[0]
     branch_name = inquirer.text("Enter the branch name [Make is similar to the issue title]")
     branch_name = f"{label}/{issue_id}-{branch_name}"
@@ -65,4 +75,7 @@ def new(ctx: Context, issue_id: int = None) -> None:
     run(f"git checkout -b {branch_name}")
 
 
-namespace = Collection("branch", new)
+namespace = Collection(
+    "branch",
+    new,
+)
