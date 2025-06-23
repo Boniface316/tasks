@@ -93,6 +93,7 @@ def get_existing_labels(
 @task
 def labels(
     ctx: None,
+    owner: str = None,
 ) -> None:
     """
     Set up the labels in the repository.
@@ -102,13 +103,16 @@ def labels(
     """
 
     (
-        owner,
+        owner_,
         repo,
     ) = get_owner_repo()
     existing_labels = get_existing_labels(
         owner,
         repo,
     )
+    if owner is None:
+        owner = owner_
+        
     for label in existing_labels:
         subprocess.run(
             [
