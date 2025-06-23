@@ -92,7 +92,7 @@ def get_existing_labels(
 
 @task
 def labels(
-    ctx: None,
+    ctx,
     owner: str = None,
 ) -> None:
     """
@@ -102,46 +102,60 @@ def labels(
         None
     """
 
-    (
-        owner_,
-        repo,
-    ) = get_owner_repo()
+    if owner is None:
+        (
+            owner,
+            repo,
+        ) = get_owner_repo()
+
+    else:
+        repo = run(
+            "gh api repos/:owner/:repo -q .name",
+            hide=True,
+        ).stdout.strip()
+
+    print(f"Setting up labels for {owner}/{repo}...")
     existing_labels = get_existing_labels(
         owner,
         repo,
     )
-    if owner is None:
-        owner = owner_
-        
-    for label in existing_labels:
-        subprocess.run(
-            [
-                "gh",
-                "label",
-                "delete",
-                label["name"],
-                "--repo",
-                f"{owner}/{repo}",
-                "--yes",  # Automatically confirm deletion
-            ]
-        )
 
-    # Update with the provided labels
-    for label in labels_list:
-        subprocess.run(
-            [
-                "gh",
-                "label",
-                "create",
-                label["name"],
-                "--color",
-                label["color"],
-                "--description",
-                label["description"],
-                "--repo",
-                f"{owner}/{repo}",
-            ]
-        )
+    print("Existing labels:")
+    for label in existing_labels:
+        print(f"- {label['name']} ({label['color']})")
+
+    # print("Deleting existing labels...")
+    
+
+    # for label in existing_labels:
+    #     subprocess.run(
+    #         [
+    #             "gh",
+    #             "label",
+    #             "delete",
+    #             label["name"],
+    #             "--repo",
+    #             f"{owner}/{repo}",
+    #             "--yes",  # Automatically confirm deletion
+    #         ]
+    #     )
+
+    # # Update with the provided labels
+    # for label in labels_list:
+    #     subprocess.run(
+    #         [
+    #             "gh",
+    #             "label",
+    #             "create",
+    #             label["name"],
+    #             "--color",
+    #             label["color"],
+    #             "--description",
+    #             label["description"],
+    #             "--repo",
+    #             f"{owner}/{repo}",
+    #         ]
+    #     )
 
 
 def create_submodules():
