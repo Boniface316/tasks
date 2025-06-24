@@ -331,6 +331,8 @@ def get_submodules():
 @task
 def gacp(
     ctx: Context,
+    owner: str = None,
+    repo: str = None,
 ) -> None:
     """
     Automates the process of adding, committing, and pushing changes to a Git repository,
