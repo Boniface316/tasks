@@ -35,8 +35,6 @@ IMAGE_TAG = "latest"
 def build(
     ctx: Context,
     tag: str = IMAGE_TAG,
-    owner: str | None = None,
-    repo: str | None = None,
 ) -> None:
     """Build the container image."""
     (
@@ -62,9 +60,7 @@ def run(
     gpus: str | None = None,
     source: str | None = None,
     dest: str | None = None,
-    open_browser: str = False,
-    owner: str | None = None,
-    repo: str | None = None,   
+    open_browser: str = False, 
 ) -> None:
     """Run the container image."""
     command = "docker run --rm -it "

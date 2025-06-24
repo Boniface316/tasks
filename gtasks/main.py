@@ -39,7 +39,7 @@ from .setup_repo import (
 
 # Create a root collection and add both namespaces directly
 ns = Collection()
-ns.add_collection(setup_namespace, "setup")  # Add repo tasks directly to root
+ns.add_collection(setup_namespace)  # Add repo tasks directly to root
 ns.add_collection(issues_namespace)  # Add issues tasks directly to root
 ns.add_collection(git_namespace)  # Add repo tasks directly to root
 ns.add_collection(branch_namespace)  # Add branch tasks directly to root
