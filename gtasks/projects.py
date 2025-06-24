@@ -16,7 +16,7 @@ from invoke.tasks import (
     task,
 )
 
-from .base import get_owner_repo
+from ._getowner import get_owner_repo
 
 # %% CONFIGS
 

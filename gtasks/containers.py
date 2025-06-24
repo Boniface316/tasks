@@ -17,7 +17,7 @@ from invoke.tasks import (
 from . import (
     packages,
 )
-from .base import (
+from ._getowner import (
     get_owner_repo,
 )
 

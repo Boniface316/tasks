@@ -21,8 +21,10 @@ from invoke.tasks import (
 from .base import (
     COMMIT_TYPES,
     get_assignee,
-    get_owner_repo,
+    
 )
+
+from ._getowner import get_owner_repo
 from .branch import (
     git_current_branch,
 )
