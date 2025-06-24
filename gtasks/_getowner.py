@@ -8,7 +8,7 @@ def get_owner_repo() -> tuple:
     Returns:
         tuple: A tuple containing the owner and repository name.
     """
-    breakpoint()
+   
     owner = run(
             "gh repo view --json owner --jq '.owner.login'",
             hide=True,
