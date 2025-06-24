@@ -86,10 +86,11 @@ def environment(
 def run(
     ctx: Context,
     job: str,
+
 ) -> None:
     """Run an mlflow project from the MLproject file."""
 
-    repository = get_owner_repo()
+    _ ,repository = get_owner_repo()
 
     ctx.run(
         f"uv run mlflow run --experiment-name={repository}"

@@ -60,7 +60,7 @@ def run(
     gpus: str | None = None,
     source: str | None = None,
     dest: str | None = None,
-    open_browser: str = False,
+    open_browser: str = False, 
 ) -> None:
     """Run the container image."""
     command = "docker run --rm -it "
