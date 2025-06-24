@@ -17,8 +17,11 @@ from invoke.tasks import (
 from .base import (
     get_assignee,
     get_label_selected,
-    get_owner_repo,
+    
 )
+
+from ._getowner import get_owner_repo
+
 from .branch import (
     delete_branch,
 )
